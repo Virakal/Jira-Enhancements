@@ -69,6 +69,10 @@ main = function() {
     'assign-to-me': {
       name: 'Assign Issue to Me',
       callback: GH.Shortcut.assignIssueToMe
+    },
+    'links': {
+      name: 'Set to Blocked...',
+      callback: GH.IssueOperationShortcuts.linkSelectedIssue
     }
   });
   initMenu();
