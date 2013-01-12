@@ -4,7 +4,6 @@
 // @description Add a context menu to JIRA issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @require     //ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
-// @icon        http://static.guim.co.uk/sys-images/Film/Pix/pictures/2002/10/29/gandalf1.jpg
 // @grant       none
 // @version     1
 // ==/UserScript==
