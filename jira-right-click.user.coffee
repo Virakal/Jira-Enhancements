@@ -10,20 +10,9 @@
 
 // By Jonathan Goodger`
 
-
-addJQuery = (callback) ->
-    script = document.createElement "script"
-    script.setAttribute "src", "//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"
-    script.addEventListener 'load', ->
-        script = document.createElement "script"
-        script.textContent = "window.jQ=jQuery.noConflict(true);(#{callback.toString()})();"
-        document.body.appendChild script
-    , false
-    document.body.appendChild script
-
-
 main = ->
     $ = window.AJS.$
+    bindings = {}
 
     buildMenu = (id, items) ->
         ###
@@ -37,11 +26,16 @@ main = ->
             elem = $('<div>').attr(
                 'class': 'contextMenu'
                 'id': id
-            ).append '<ul>'
+            )
 
-            for id, name of items
-                elem.children('ul:eq(0)').append $("<li id='#{id}'>").text(name)
+            ul = $ '<ul>'
 
+            for id, config of items
+                ul.append $("<li id='#{id}'>").text(config.name)
+
+                bindings[id] = config.callback
+
+            elem.append ul
             $('body').append elem
 
     initMenu = ->
@@ -58,25 +52,30 @@ main = ->
                 'background-color': 'rgb(217, 231, 243)'
                 'border-color': 'rgb(180, 200, 210)'
 
-            bindings:
-                'edit-issue': GH.Shortcut.editIssue
-                'edit-labels': GH.Shortcut.editIssueLabels
-                'assign-to-me': GH.Shortcut.assignIssueToMe
+            bindings: bindings
         }
 
 
-    buildMenu 'issueContextMenu', {
-        'edit-issue': 'Edit Issue...'
-        'edit-labels': 'Edit Labels...'
-        'assign-to-me': 'Assign Issue to Me'
-    }
+    buildMenu 'issueContextMenu',
+        'edit-issue':
+            name: 'Edit Issue...'
+            callback: GH.Shortcut.editIssue
 
+        'edit-labels': 
+            name: 'Edit Labels...'
+            callback: GH.Shortcut.editIssueLabels
+
+        'assign-to-me':
+            name: 'Assign Issue to Me'
+            callback: GH.Shortcut.assignIssueToMe
 
     initMenu()
 
     $(document).bind "DOMNodeInserted", (e) =>
+        # span#js-pool-end is added when 'work' is reloaded
         initMenu() if 'js-pool-end' == $(e.target).attr 'id'
 
+# Shiv the JS in as a script tag to gain access to jQuery from AJS
 script = document.createElement 'script'
 script.textContent = "(#{main.toString()})();"
 document.body.appendChild script
