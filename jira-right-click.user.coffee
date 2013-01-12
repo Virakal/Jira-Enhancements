@@ -1,14 +1,12 @@
 `// ==UserScript==
-// @name        JIRA Right-Click Menu
+// @name        Jon's Incredible JIRA Sprint Board Minor Improvements
 // @namespace   http://gm.delphae.net/
-// @description Add a context menu to JIRA issues.
+// @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
-// @require     //ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
 // @grant       none
 // @version     1
 // ==/UserScript==
-
-// By Jonathan Goodger`
+`
 
 main = ->
     $ = window.AJS.$
@@ -38,8 +36,10 @@ main = ->
             elem.append ul
             $('body').append elem
 
-    initMenu = ->
-        $('.ghx-issue').contextMenu 'issueContextMenu', {
+    initIssueCards = ->
+        cards = $('.ghx-issue')
+
+        cards.contextMenu 'issueContextMenu',
             onContextMenu: (e) ->
                 $(e.currentTarget).trigger 'click'
 
@@ -53,12 +53,19 @@ main = ->
                 'border-color': 'rgb(180, 200, 210)'
 
             bindings: bindings
-        }
+        
+        cards.dblclick (e) ->
+            $(e.currentTarget).find('.js-detailview')[0].click()
 
 
     buildMenu 'issueContextMenu',
+        'view-story':
+            name: 'View Story...'
+            callback: (t) ->
+                $(t).find('.js-detailview')[0].click()
+
         'edit-issue':
-            name: 'Edit Issue...'
+            name: 'Edit Story...'
             callback: GH.Shortcut.editIssue
 
         'edit-labels': 
@@ -66,18 +73,18 @@ main = ->
             callback: GH.Shortcut.editIssueLabels
 
         'assign-to-me':
-            name: 'Assign Issue to Me'
+            name: 'Assign Story to Me'
             callback: GH.Shortcut.assignIssueToMe
 
         'links':
             name: 'Set to Blocked...'
             callback: GH.IssueOperationShortcuts.linkSelectedIssue
 
-    initMenu()
+    initIssueCards()
 
     $(document).bind "DOMNodeInserted", (e) =>
         # span#js-pool-end is added when 'work' is reloaded
-        initMenu() if 'js-pool-end' == $(e.target).attr 'id'
+        initIssueCards() if 'js-pool-end' == $(e.target).attr 'id'
 
 # Shiv the JS in as a script tag to gain access to jQuery from AJS
 script = document.createElement 'script'
