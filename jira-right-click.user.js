@@ -12,20 +12,11 @@
 var main, script;
 
 main = function() {
-  var $, API_URL, bindings, buildMenu, clearImmediate, initIssueCards, labelsCss, setImmediate, _ref,
+  var $, API_URL, bindings, buildMenu, clearImmediate, initIssueCards, setImmediate, _ref,
     _this = this;
   $ = window.AJS.$;
   API_URL = '/rest/api/2/';
   bindings = {};
-  labelsCss = {
-    'background': 'rgb(180, 200, 210)',
-    'border': '1px solid rgb(180, 200, 210)',
-    'border-radius': '4px',
-    'margin-right': '5px',
-    'padding': '0 2px',
-    'position': 'relative',
-    'top': '-15px'
-  };
   setImmediate = (_ref = window.setImmediate) != null ? _ref : function(func, args) {
     return window.setTimeout(func, 0, args);
   };
@@ -75,7 +66,7 @@ main = function() {
       card = cards[_i];
       _results.push((function(card) {
         return setImmediate(function() {
-          return $.ajax("" + API_URL + "issue/" + ($(card).data('issueId')), {
+          return $.ajax("" + API_URL + "issue/" + ($(card).data('issueId')) + "?fields=labels", {
             dataType: 'json',
             type: 'GET',
             success: function(data) {
@@ -87,7 +78,15 @@ main = function() {
                 label = _ref1[_j];
                 span = $('<span>');
                 span.text(label);
-                span.css(labelsCss);
+                span.css({
+                  'background': 'rgb(180, 200, 210)',
+                  'border': '1px solid rgb(180, 200, 210)',
+                  'border-radius': '4px',
+                  'margin-right': '5px',
+                  'padding': '0 2px',
+                  'position': 'relative',
+                  'top': '-15px'
+                });
                 _results1.push(list.append(span));
               }
               return _results1;
@@ -126,6 +125,9 @@ main = function() {
     }
   });
   initIssueCards();
+  $('#fancybox-outer').on('dblclick', '#fancybox-img', function(e) {
+    return window.open($(this).attr('src'));
+  });
   return $(document).bind("DOMNodeInserted", function(e) {
     if ('js-pool-end' === $(e.target).attr('id')) {
       return initIssueCards();

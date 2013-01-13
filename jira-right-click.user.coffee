@@ -14,8 +14,6 @@ main = ->
 
     bindings = {}
 
-    labelsCss = 
-
     setImmediate = window.setImmediate ? (func, args) ->
        return window.setTimeout func, 0, args
 
@@ -45,6 +43,8 @@ main = ->
             $('body').append elem
 
     initIssueCards = ->
+        # TODO: Refactor to delegate events
+        # TODO: Cache data in local storage? Invalidate on pushstate or something?
         cards = $('.ghx-issue')
 
         cards.contextMenu 'issueContextMenu',
@@ -70,7 +70,7 @@ main = ->
         for card in cards
             do (card) ->
                 setImmediate ->
-                    $.ajax "#{API_URL}issue/#{$(card).data('issueId')}",
+                    $.ajax "#{API_URL}issue/#{$(card).data('issueId')}?fields=labels",
                         dataType: 'json'
                         type: 'GET'
 
@@ -119,11 +119,15 @@ main = ->
 
     initIssueCards()
 
+    # TODO: Proper image zooming?
+    $('#fancybox-outer').on 'dblclick', '#fancybox-img', (e) ->
+        window.open $(this).attr 'src'
+
     $(document).bind "DOMNodeInserted", (e) =>
         # span#js-pool-end is added when 'work' is reloaded
         initIssueCards() if 'js-pool-end' == $(e.target).attr 'id'
 
-# Shiv the JS in as a script tag to gain access to jQuery from AJS
+# Inject the JS in as a script tag to gain access to jQuery from AJS
 script = document.createElement 'script'
 script.textContent = "(#{main.toString()})();"
 document.body.appendChild script
