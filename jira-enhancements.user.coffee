@@ -4,12 +4,11 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     1
+// @version     2
 // ==/UserScript==
 `
 
-main = ->
-    $ = window.AJS.$
+main = ($) ->
     API_URL = '/rest/api/2/'
 
     bindings = {}
@@ -18,6 +17,15 @@ main = ->
        return window.setTimeout func, 0, args
 
     clearImmediate = window.clearTimeout
+
+    isBlocked = (link) ->
+        !!link.type.outward is "blocks" and link.outwardIssue?.fields.status.name isnt "Done"
+
+    setBlocked = (card, value = true) ->
+        flag = $(card).find '.blocked-flag'
+
+        if value then flag.show() else flag.hide()
+
     
     buildMenu = (id, items) ->
         # http://www.trendskitchens.co.nz/jquery/contextmenu/
@@ -42,11 +50,25 @@ main = ->
         $('body').append elem
 
     decorateCard = (card, data) ->
+        blockedFlag = $ '<img>'
+
+        blockedFlag.hide()
+
+        blockedFlag.attr
+            'src': '/images/icons/emoticons/error.gif'
+            'alt': ' (Blocked)'
+            'title': 'This story is blocked!'
+            'class': 'blocked-flag'
+
+        $(card).find('.js-detailview').after blockedFlag
+
         if data.fields?
             flags = $(card).find '.ghx-flags'
             
-            if data.fields.labels
-                list = $(card).find '.label-list'
+            if data.fields.labels?.length
+                list = $('<div>').attr('class', 'label-list').hide()
+
+                $(card).append list
 
                 for label in data.fields.labels
                     span = $ '<span>'
@@ -54,28 +76,43 @@ main = ->
 
                     list.append span
 
-            if data.fields.attachment.length
+                    blockedFlag.show() if label.toLowerCase() is 'blocked' and data.fields.status?.name isnt 'Done'
+
+                list.show()
+
+            if data.fields.attachment?.length
                 attachmentFlag = $ '<span>'
                 attachmentFlag.addClass 'uses-sprite has-attachment'
 
                 flags.append attachmentFlag
 
-            if data.fields.comment.comments.length
+            if data.fields.comment.comments?.length
                 commentFlag = $ '<span>'
                 commentFlag.addClass 'uses-sprite has-comments'
 
                 flags.append commentFlag
 
+            if data.fields.issuelinks?.length
+                for link in data.fields.issuelinks when isBlocked(link) and data.fields.status?.name isnt 'Done'
+                    blockedFlag.show()
+                    break
+                
+
     initIssueCards = ->
-        # TODO: Refactor to delegate events
-        # TODO: Cache data in local storage? Invalidate on pushstate or something?
-        cards = $('.ghx-issue')
+        FIELDS = [
+            'attachment'
+            'comment'
+            'issuelinks'
+            'labels'
+            'status'
+        ]
+
+        cards = $ '.ghx-issue'
 
         cards.contextMenu 'issueContextMenu',
             onContextMenu: (e) ->
+                # Select the issue before firing context menu
                 $(e.currentTarget).trigger 'click'
-
-                return true
 
             menuStyle:
                 'width': 'auto'
@@ -86,15 +123,10 @@ main = ->
 
             bindings: bindings
         
-        cards.dblclick (e) ->
-            $(e.currentTarget).find('.js-detailview')[0].click()
-
-        cards.append $('<div>').attr('class', 'label-list')
-
         for card in cards
             do (card) ->
                 setImmediate ->
-                    $.ajax "#{API_URL}issue/#{$(card).data('issueId')}?fields=labels,attachment,comment",
+                    $.ajax "#{API_URL}issue/#{$(card).data('issueId')}?fields=#{FIELDS.join ','}",
                         dataType: 'json'
                         type: 'GET'
 
@@ -102,7 +134,7 @@ main = ->
                             decorateCard card, data
 
                         error: (xhr, status, error) ->
-                            console.log "Jon: Error fetching data for issue #{$(card).data()}"
+                            console.debug "Jon: Error fetching data for issue #{$(card).data()}"
 
 
     buildMenu 'issueContextMenu',
@@ -133,50 +165,80 @@ main = ->
     $('#fancybox-outer').on 'dblclick', '#fancybox-img', (e) ->
         window.open $(this).attr 'src'
 
-    $(document).bind "DOMNodeInserted", (e) =>
+    $('#ghx-work').on 'dblclick', '.ghx-issue', (e) ->
+        $(e.currentTarget).find('.js-detailview')[0].click()
+
+    $(document).bind "DOMNodeInserted", (e) ->
         # span#js-pool-end is added when 'work' is reloaded
-        initIssueCards() if 'js-pool-end' == $(e.target).attr 'id'
+        initIssueCards() if $(e.target).attr('id') is 'js-pool-end'
 
 # Inject the JS in as a script tag to gain access to jQuery from AJS
 script = document.createElement 'script'
-script.textContent = "(#{main.toString()})();"
+script.textContent = "(#{main.toString()})(window.AJS.$);"
 document.body.appendChild script
 
 GM_addStyle "
-    .ghx-issue .label-list span {
-      background: #b4c8d2;
-      border: 1px solid #d9e7f3;
-      border-radius: 0.4em;
-      margin-right: 0.5em;
-      padding: 0 0.2em;
-      position: relative;
-      top: -1.15em;
+    #ghx-work .ghx-issue .label-list span {
+        background: #b4c8d2;
+        border: 1px solid #d9e7f3;
+        border-radius: 0.4em;
+        margin-right: 0.5em;
+        padding: 0 0.2em;
+        position: relative;
+        top: -1.15em;
     }
-    .ghx-issue .ghx-type {
-      display: none;
+
+    #ghx-work .ghx-issue .ghx-type {
+        display: none;
     }
-    .ghx-issue .ghx-flags {
-      top: 6px;
+
+    #ghx-work .ghx-issue .ghx-flags {
+        top: 6px;
     }
-    .ghx-issue .ghx-flags span:nth-of-type(2) {
+
+    #ghx-work .ghx-issue .ghx-flags span:nth-of-type(2) {
         margin-top: 4px;
     }
-    .ghx-issue .ghx-flags span {
+
+    #ghx-work .ghx-issue .ghx-flags span {
         display: block;
         height: 14px;
         margin-bottom: 2px;
         vertical-align: middle;
         width: 16px;
     }
-    .ghx-issue .ghx-flags .uses-sprite {
+
+    #ghx-work .ghx-issue .ghx-flags .uses-sprite {
         background-image: url('https://mobilefun.atlassian.net/s/en_US-seakxi-418945332/6007/29/6.1-rc1/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common/images/rapid/ghx-icon-sprite.png');
         background-repeat: no-repeat;
     }
-    .ghx-issue .ghx-flags .has-attachment {
+
+    #ghx-work .ghx-issue .ghx-flags .has-attachment {
         background-position: 0 -350px;
     }
 
-    .ghx-issue .ghx-flags .has-comments {
+    #ghx-work .ghx-issue .ghx-flags .has-comments {
         background-position: 0 -325px;
+    }
+
+    #ghx-work .ghx-issue .blocked-flag {
+        height: 1em;
+        left: 0.33em;
+        position: relative;
+        top: 0.17em;
+        width: 1em;
+    }
+
+    #ghx-plan .ghx-issue .ghx-type {
+        display: none;
+    }
+
+    #ghx-plan .ghx-issue .ghx-priority {
+        display: none;
+    }
+
+    #ghx-plan .ghx-issue .ghx-issue-fields {
+        left: -40px;
+        position: relative;
     }
 "

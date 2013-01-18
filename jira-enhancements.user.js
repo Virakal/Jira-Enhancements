@@ -5,22 +5,36 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     1
+// @version     2
 // ==/UserScript==
 ;
 
 var main, script;
 
-main = function() {
-  var $, API_URL, bindings, buildMenu, clearImmediate, decorateCard, initIssueCards, setImmediate, _ref,
-    _this = this;
-  $ = window.AJS.$;
+main = function($) {
+  var API_URL, bindings, buildMenu, clearImmediate, decorateCard, initIssueCards, isBlocked, setBlocked, setImmediate, _ref;
   API_URL = '/rest/api/2/';
   bindings = {};
   setImmediate = (_ref = window.setImmediate) != null ? _ref : function(func, args) {
     return window.setTimeout(func, 0, args);
   };
   clearImmediate = window.clearTimeout;
+  isBlocked = function(link) {
+    var _ref1;
+    return !!link.type.outward === "blocks" && ((_ref1 = link.outwardIssue) != null ? _ref1.fields.status.name : void 0) !== "Done";
+  };
+  setBlocked = function(card, value) {
+    var flag;
+    if (value == null) {
+      value = true;
+    }
+    flag = $(card).find('.blocked-flag');
+    if (value) {
+      return flag.show();
+    } else {
+      return flag.hide();
+    }
+  };
   buildMenu = function(id, items) {
     (function($){var menu,shadow,trigger,content,hash,currentTarget;var defaults={menuStyle:{listStyle:'none',padding:'1px',margin:'0px',backgroundColor:'#fff',border:'1px solid #999',width:'100px'},itemStyle:{margin:'0px',color:'#000',display:'block',cursor:'default',padding:'3px',border:'1px solid #fff',backgroundColor:'transparent'},itemHoverStyle:{border:'1px solid #0a246a',backgroundColor:'#b6bdd2'},eventPosX:'pageX',eventPosY:'pageY',shadow:true,onContextMenu:null,onShowMenu:null};$.fn.contextMenu=function(id,options){if(!menu){menu=$('<div id="jqContextMenu"></div>').hide().css({position:'absolute',zIndex:'500'}).appendTo('body').bind('click',function(e){e.stopPropagation()})}if(!shadow){shadow=$('<div></div>').css({backgroundColor:'#000',position:'absolute',opacity:0.2,zIndex:499}).appendTo('body').hide()}hash=hash||[];hash.push({id:id,menuStyle:$.extend({},defaults.menuStyle,options.menuStyle||{}),itemStyle:$.extend({},defaults.itemStyle,options.itemStyle||{}),itemHoverStyle:$.extend({},defaults.itemHoverStyle,options.itemHoverStyle||{}),bindings:options.bindings||{},shadow:options.shadow||options.shadow===false?options.shadow:defaults.shadow,onContextMenu:options.onContextMenu||defaults.onContextMenu,onShowMenu:options.onShowMenu||defaults.onShowMenu,eventPosX:options.eventPosX||defaults.eventPosX,eventPosY:options.eventPosY||defaults.eventPosY});var index=hash.length-1;$(this).bind('contextmenu',function(e){var bShowContext=(!!hash[index].onContextMenu)?hash[index].onContextMenu(e):true;if(bShowContext)display(index,this,e,options);return false});return this};function display(index,trigger,e,options){var cur=hash[index];content=$('#'+cur.id).find('ul:first').clone(true);content.css(cur.menuStyle).find('li').css(cur.itemStyle).hover(function(){$(this).css(cur.itemHoverStyle)},function(){$(this).css(cur.itemStyle)}).find('img').css({verticalAlign:'middle',paddingRight:'2px'});menu.html(content);if(!!cur.onShowMenu)menu=cur.onShowMenu(e,menu);$.each(cur.bindings,function(id,func){$('#'+id,menu).bind('click',function(e){hide();func(trigger,currentTarget)})});menu.css({'left':e[cur.eventPosX],'top':e[cur.eventPosY]}).show();if(cur.shadow)shadow.css({width:menu.width(),height:menu.height(),left:e.pageX+2,top:e.pageY+2}).show();$(document).one('click',hide)}function hide(){menu.hide();shadow.hide()}$.contextMenu={defaults:function(userDefaults){$.each(userDefaults,function(i,val){if(typeof val=='object'&&defaults[i]){$.extend(defaults[i],val)}else defaults[i]=val})}}})($);
 
@@ -40,38 +54,65 @@ main = function() {
     return $('body').append(elem);
   };
   decorateCard = function(card, data) {
-    var attachmentFlag, commentFlag, flags, label, list, span, _i, _len, _ref1;
+    var attachmentFlag, blockedFlag, commentFlag, flags, label, link, list, span, _i, _j, _len, _len1, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
+    blockedFlag = $('<img>');
+    blockedFlag.hide();
+    blockedFlag.attr({
+      'src': '/images/icons/emoticons/error.gif',
+      'alt': ' (Blocked)',
+      'title': 'This story is blocked!',
+      'class': 'blocked-flag'
+    });
+    $(card).find('.js-detailview').after(blockedFlag);
     if (data.fields != null) {
       flags = $(card).find('.ghx-flags');
-      if (data.fields.labels) {
-        list = $(card).find('.label-list');
-        _ref1 = data.fields.labels;
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          label = _ref1[_i];
+      if ((_ref1 = data.fields.labels) != null ? _ref1.length : void 0) {
+        list = $('<div>').attr('class', 'label-list').hide();
+        $(card).append(list);
+        _ref2 = data.fields.labels;
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          label = _ref2[_i];
           span = $('<span>');
           span.text(label);
           list.append(span);
+          if (label.toLowerCase() === 'blocked' && ((_ref3 = data.fields.status) != null ? _ref3.name : void 0) !== 'Done') {
+            blockedFlag.show();
+          }
         }
+        list.show();
       }
-      if (data.fields.attachment.length) {
+      if ((_ref4 = data.fields.attachment) != null ? _ref4.length : void 0) {
         attachmentFlag = $('<span>');
         attachmentFlag.addClass('uses-sprite has-attachment');
         flags.append(attachmentFlag);
       }
-      if (data.fields.comment.comments.length) {
+      if ((_ref5 = data.fields.comment.comments) != null ? _ref5.length : void 0) {
         commentFlag = $('<span>');
         commentFlag.addClass('uses-sprite has-comments');
-        return flags.append(commentFlag);
+        flags.append(commentFlag);
+      }
+      if ((_ref6 = data.fields.issuelinks) != null ? _ref6.length : void 0) {
+        _ref7 = data.fields.issuelinks;
+        _results = [];
+        for (_j = 0, _len1 = _ref7.length; _j < _len1; _j++) {
+          link = _ref7[_j];
+          if (!(isBlocked(link) && ((_ref8 = data.fields.status) != null ? _ref8.name : void 0) !== 'Done')) {
+            continue;
+          }
+          blockedFlag.show();
+          break;
+        }
+        return _results;
       }
     }
   };
   initIssueCards = function() {
-    var card, cards, _i, _len, _results;
+    var FIELDS, card, cards, _i, _len, _results;
+    FIELDS = ['attachment', 'comment', 'issuelinks', 'labels', 'status'];
     cards = $('.ghx-issue');
     cards.contextMenu('issueContextMenu', {
       onContextMenu: function(e) {
-        $(e.currentTarget).trigger('click');
-        return true;
+        return $(e.currentTarget).trigger('click');
       },
       menuStyle: {
         'width': 'auto'
@@ -82,23 +123,19 @@ main = function() {
       },
       bindings: bindings
     });
-    cards.dblclick(function(e) {
-      return $(e.currentTarget).find('.js-detailview')[0].click();
-    });
-    cards.append($('<div>').attr('class', 'label-list'));
     _results = [];
     for (_i = 0, _len = cards.length; _i < _len; _i++) {
       card = cards[_i];
       _results.push((function(card) {
         return setImmediate(function() {
-          return $.ajax("" + API_URL + "issue/" + ($(card).data('issueId')) + "?fields=labels,attachment,comment", {
+          return $.ajax("" + API_URL + "issue/" + ($(card).data('issueId')) + "?fields=" + (FIELDS.join(',')), {
             dataType: 'json',
             type: 'GET',
             success: function(data) {
               return decorateCard(card, data);
             },
             error: function(xhr, status, error) {
-              return console.log("Jon: Error fetching data for issue " + ($(card).data()));
+              return console.debug("Jon: Error fetching data for issue " + ($(card).data()));
             }
           });
         });
@@ -134,8 +171,11 @@ main = function() {
   $('#fancybox-outer').on('dblclick', '#fancybox-img', function(e) {
     return window.open($(this).attr('src'));
   });
+  $('#ghx-work').on('dblclick', '.ghx-issue', function(e) {
+    return $(e.currentTarget).find('.js-detailview')[0].click();
+  });
   return $(document).bind("DOMNodeInserted", function(e) {
-    if ('js-pool-end' === $(e.target).attr('id')) {
+    if ($(e.target).attr('id') === 'js-pool-end') {
       return initIssueCards();
     }
   });
@@ -143,8 +183,8 @@ main = function() {
 
 script = document.createElement('script');
 
-script.textContent = "(" + (main.toString()) + ")();";
+script.textContent = "(" + (main.toString()) + ")(window.AJS.$);";
 
 document.body.appendChild(script);
 
-GM_addStyle("    .ghx-issue .label-list span {      background: #b4c8d2;      border: 1px solid #d9e7f3;      border-radius: 0.4em;      margin-right: 0.5em;      padding: 0 0.2em;      position: relative;      top: -1.15em;    }    .ghx-issue .ghx-type {      display: none;    }    .ghx-issue .ghx-flags {      top: 6px;    }    .ghx-issue .ghx-flags span:nth-of-type(2) {        margin-top: 4px;    }    .ghx-issue .ghx-flags span {        display: block;        height: 14px;        margin-bottom: 2px;        vertical-align: middle;        width: 16px;    }    .ghx-issue .ghx-flags .uses-sprite {        background-image: url('https://mobilefun.atlassian.net/s/en_US-seakxi-418945332/6007/29/6.1-rc1/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common/images/rapid/ghx-icon-sprite.png');        background-repeat: no-repeat;    }    .ghx-issue .ghx-flags .has-attachment {        background-position: 0 -350px;    }    .ghx-issue .ghx-flags .has-comments {        background-position: 0 -325px;    }");
+GM_addStyle("    #ghx-work .ghx-issue .label-list span {        background: #b4c8d2;        border: 1px solid #d9e7f3;        border-radius: 0.4em;        margin-right: 0.5em;        padding: 0 0.2em;        position: relative;        top: -1.15em;    }    #ghx-work .ghx-issue .ghx-type {        display: none;    }    #ghx-work .ghx-issue .ghx-flags {        top: 6px;    }    #ghx-work .ghx-issue .ghx-flags span:nth-of-type(2) {        margin-top: 4px;    }    #ghx-work .ghx-issue .ghx-flags span {        display: block;        height: 14px;        margin-bottom: 2px;        vertical-align: middle;        width: 16px;    }    #ghx-work .ghx-issue .ghx-flags .uses-sprite {        background-image: url('https://mobilefun.atlassian.net/s/en_US-seakxi-418945332/6007/29/6.1-rc1/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common/images/rapid/ghx-icon-sprite.png');        background-repeat: no-repeat;    }    #ghx-work .ghx-issue .ghx-flags .has-attachment {        background-position: 0 -350px;    }    #ghx-work .ghx-issue .ghx-flags .has-comments {        background-position: 0 -325px;    }    #ghx-work .ghx-issue .blocked-flag {        height: 1em;        left: 0.33em;        position: relative;        top: 0.17em;        width: 1em;    }    #ghx-plan .ghx-issue .ghx-type {        display: none;    }    #ghx-plan .ghx-issue .ghx-priority {        display: none;    }    #ghx-plan .ghx-issue .ghx-issue-fields {        left: -40px;        position: relative;    }");
