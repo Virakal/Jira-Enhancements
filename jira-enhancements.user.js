@@ -12,7 +12,7 @@
 var main, script;
 
 main = function($) {
-  var API_URL, bindings, buildMenu, clearImmediate, decorateCard, initIssueCards, insertDependencies, isBlocked, setBlocked, setImmediate, _ref;
+  var API_URL, bindings, buildMenu, clearImmediate, decorateCard, initIssueCards, initPlanView, insertDependencies, isBlocked, setBlocked, setImmediate, _ref;
   API_URL = '/rest/api/2/';
   bindings = {};
   setImmediate = (_ref = window.setImmediate) != null ? _ref : function(func, args) {
@@ -41,17 +41,20 @@ main = function($) {
     }
   };
   buildMenu = function(id, items) {
-    var config, elem, ul;
+    var bindingId, config, elem, ul, _ref1;
+    if ((_ref1 = bindings[id]) == null) {
+      bindings[id] = {};
+    }
     elem = $('<div>').attr({
       'class': 'contextMenu',
       'id': id
     });
     elem.hide();
     ul = $('<ul>');
-    for (id in items) {
-      config = items[id];
-      ul.append($("<li id='" + id + "'>").text(config.name));
-      bindings[id] = config.callback;
+    for (bindingId in items) {
+      config = items[bindingId];
+      ul.append($("<li id='" + bindingId + "'>").text(config.name));
+      bindings[id][bindingId] = config.callback;
     }
     elem.append(ul);
     return $('body').append(elem);
@@ -113,7 +116,7 @@ main = function($) {
     var FIELDS, card, cards, _i, _len, _results;
     FIELDS = ['attachment', 'comment', 'issuelinks', 'labels', 'status'];
     cards = $('.ghx-issue');
-    cards.contextMenu('issueContextMenu', {
+    cards.contextMenu('workContextMenu', {
       onContextMenu: function(e) {
         return $(e.currentTarget).trigger('click');
       },
@@ -124,7 +127,7 @@ main = function($) {
         'background-color': 'rgb(217, 231, 243)',
         'border-color': 'rgb(180, 200, 210)'
       },
-      bindings: bindings
+      bindings: bindings['workContextMenu']
     });
     _results = [];
     for (_i = 0, _len = cards.length; _i < _len; _i++) {
@@ -146,8 +149,25 @@ main = function($) {
     }
     return _results;
   };
+  initPlanView = function() {
+    var cards;
+    cards = $('.ghx-issue');
+    return cards.contextMenu('planContextMenu', {
+      onContextMenu: function(e) {
+        return $(e.currentTarget).trigger('click');
+      },
+      menuStyle: {
+        'width': 'auto'
+      },
+      itemHoverStyle: {
+        'background-color': 'rgb(217, 231, 243)',
+        'border-color': 'rgb(180, 200, 210)'
+      },
+      bindings: bindings['planContextMenu']
+    });
+  };
   insertDependencies();
-  buildMenu('issueContextMenu', {
+  buildMenu('workContextMenu', {
     'view-story': {
       name: 'View Story...',
       callback: function(t) {
@@ -171,7 +191,18 @@ main = function($) {
       callback: GH.IssueOperationShortcuts.linkSelectedIssue
     }
   });
+  buildMenu('planContextMenu', {
+    'send-to-top': {
+      name: 'Send to Top',
+      callback: GH.Shortcut.sendToTop
+    },
+    'send-to-bottom': {
+      name: 'Send to Bottom',
+      callback: GH.Shortcut.sendToBottom
+    }
+  });
   initIssueCards();
+  initPlanView();
   $('#fancybox-outer').on('dblclick', '#fancybox-img', function(e) {
     return window.open($(this).attr('src'));
   });
@@ -179,7 +210,10 @@ main = function($) {
     var target;
     target = $(e.target);
     if (target.attr('id') === 'js-pool-end') {
-      return initIssueCards();
+      initIssueCards();
+    }
+    if (target.hasClass('ghx-foot')) {
+      return initPlanView();
     }
   });
   setTimeout((function() {

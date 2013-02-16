@@ -34,6 +34,8 @@ main = ($) ->
 
     
     buildMenu = (id, items) ->
+        bindings[id] ?= {}
+
         elem = $('<div>').attr
             'class': 'contextMenu'
             'id': id
@@ -42,10 +44,10 @@ main = ($) ->
 
         ul = $ '<ul>'
 
-        for id, config of items
-            ul.append $("<li id='#{id}'>").text(config.name)
+        for bindingId, config of items
+            ul.append $("<li id='#{bindingId}'>").text(config.name)
 
-            bindings[id] = config.callback
+            bindings[id][bindingId] = config.callback
 
         elem.append ul
 
@@ -111,7 +113,7 @@ main = ($) ->
 
         cards = $ '.ghx-issue'
 
-        cards.contextMenu 'issueContextMenu',
+        cards.contextMenu 'workContextMenu'
             onContextMenu: (e) ->
                 # Select the issue before firing context menu
                 $(e.currentTarget).trigger 'click'
@@ -123,7 +125,7 @@ main = ($) ->
                 'background-color': 'rgb(217, 231, 243)'
                 'border-color': 'rgb(180, 200, 210)'
 
-            bindings: bindings
+            bindings: bindings['workContextMenu']
         
         for card in cards
             do (card) ->
@@ -138,10 +140,29 @@ main = ($) ->
                         error: (xhr, status, error) ->
                             console.debug "Error fetching data for issue #{$(card).data()}"
 
+
+    initPlanView = ->
+        cards = $ '.ghx-issue'
+
+        cards.contextMenu 'planContextMenu'
+            onContextMenu: (e) ->
+                # Select the issue before firing context menu
+                $(e.currentTarget).trigger 'click'
+
+            menuStyle:
+                'width': 'auto'
+
+            itemHoverStyle:
+                'background-color': 'rgb(217, 231, 243)'
+                'border-color': 'rgb(180, 200, 210)'
+
+            bindings: bindings['planContextMenu']
+
     # MAIN
 
     insertDependencies()
-    buildMenu 'issueContextMenu',
+
+    buildMenu 'workContextMenu'
         'view-story':
             name: 'View Story...'
             callback: (t) ->
@@ -163,7 +184,17 @@ main = ($) ->
             name: 'Set to Blocked...'
             callback: GH.IssueOperationShortcuts.linkSelectedIssue
 
+    buildMenu 'planContextMenu'
+        'send-to-top':
+            name: 'Send to Top'
+            callback: GH.Shortcut.sendToTop
+
+        'send-to-bottom':
+            name: 'Send to Bottom'
+            callback: GH.Shortcut.sendToBottom
+
     initIssueCards()
+    initPlanView()
 
     # TODO: Proper image zooming?
     $('#fancybox-outer').on 'dblclick', '#fancybox-img', (e) ->
@@ -171,8 +202,10 @@ main = ($) ->
 
     $(document).bind "DOMNodeInserted", (e) ->
         # span#js-pool-end is added when 'work' is reloaded
+        # div.ghx-foot is added when 'plan' is reloaded
         target = $ e.target
         initIssueCards() if target.attr('id') is 'js-pool-end'
+        initPlanView() if target.hasClass('ghx-foot')
 
     # Ugly hack to ensure the handler gets set in Firefox
     setTimeout((-> $('#ghx-work').on 'dblclick', '.ghx-issue', (e) ->
