@@ -64,13 +64,13 @@ your JIRA page.
     + Double click attachment images in their lightbox to open in a new tab (for
       zooming, etc.)
     + Double click anywhere on an issue card to open the details pane
+    + Make all external links open in a new tab
 
 ## Upcoming Features ##
 
 + General
     + Short-term caching of data to reduce AJAX calls
 + Work View
-    + Make all external links open in a new tab
     + Keyboard navigation for issue cards
 + Plan View
     + Context menu for issue listings
