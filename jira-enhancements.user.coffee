@@ -24,12 +24,13 @@ main = ($) ->
         
 
     isBlocked = (link) ->
-        !!(link.type.outward is "blocks" and link.outwardIssue?.fields.status.name isnt "Done")
+        if link.type.inward is "is blocked by"
+            return (!link.outwardIssue?) and link.inwardIssue?.fields.status.name isnt "Done"
 
     setBlocked = (card, value = true) ->
         flag = $(card).find '.blocked-flag'
 
-        if value then flag.show() else flag.hide()
+        if value then flag.css('display', 'inline-block') else flag.hide()
 
     
     buildMenu = (id, items) ->
@@ -77,7 +78,7 @@ main = ($) ->
 
                     list.append span
 
-                    blockedFlag.show() if label.toLowerCase() is 'blocked' and data.fields.status?.name isnt 'Done'
+                    setBlocked(card) if label.toLowerCase() is 'blocked' and data.fields.status?.name isnt 'Done'
 
                 list.show()
 
@@ -95,7 +96,7 @@ main = ($) ->
 
             if data.fields.issuelinks?.length
                 for link in data.fields.issuelinks when isBlocked(link) and data.fields.status?.name isnt 'Done'
-                    blockedFlag.show()
+                    setBlocked(card)
                     break
                 
 
@@ -172,11 +173,11 @@ main = ($) ->
         # span#js-pool-end is added when 'work' is reloaded
         target = $ e.target
         initIssueCards() if target.attr('id') is 'js-pool-end'
-        target.attr 'target', 'blank' if target.attr('class') is 'external-link'
+        target.attr 'target', '_blank' if target.attr('class') is 'external-link'
 
         return true
 
-    # Ugly hack to ensure the handler gets set
+    # Ugly hack to ensure the handler gets set in Firefox
     setTimeout((-> $('#ghx-work').on 'dblclick', '.ghx-issue', (e) ->
         console.log "Clicked on ", $(e.currentTarget).find('.js-detailview')[0]
         $(e.currentTarget).find('.js-detailview')[0].click()

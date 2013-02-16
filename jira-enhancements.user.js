@@ -24,7 +24,9 @@ main = function($) {
   };
   isBlocked = function(link) {
     var _ref1;
-    return !!(link.type.outward === "blocks" && ((_ref1 = link.outwardIssue) != null ? _ref1.fields.status.name : void 0) !== "Done");
+    if (link.type.inward === "is blocked by") {
+      return (!(link.outwardIssue != null)) && ((_ref1 = link.inwardIssue) != null ? _ref1.fields.status.name : void 0) !== "Done";
+    }
   };
   setBlocked = function(card, value) {
     var flag;
@@ -33,7 +35,7 @@ main = function($) {
     }
     flag = $(card).find('.blocked-flag');
     if (value) {
-      return flag.show();
+      return flag.css('display', 'inline-block');
     } else {
       return flag.hide();
     }
@@ -77,7 +79,7 @@ main = function($) {
           span.text(label);
           list.append(span);
           if (label.toLowerCase() === 'blocked' && ((_ref3 = data.fields.status) != null ? _ref3.name : void 0) !== 'Done') {
-            blockedFlag.show();
+            setBlocked(card);
           }
         }
         list.show();
@@ -100,7 +102,7 @@ main = function($) {
           if (!(isBlocked(link) && ((_ref8 = data.fields.status) != null ? _ref8.name : void 0) !== 'Done')) {
             continue;
           }
-          blockedFlag.show();
+          setBlocked(card);
           break;
         }
         return _results;
@@ -180,7 +182,7 @@ main = function($) {
       initIssueCards();
     }
     if (target.attr('class') === 'external-link') {
-      target.attr('target', 'blank');
+      target.attr('target', '_blank');
     }
     return true;
   });
