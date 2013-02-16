@@ -31,7 +31,7 @@ Once you have that installed, the fastest way to install is to simply click the
 This should bring up the GreaseMonkey install dialogue box. After installing, the
 extension should work by opening/refreshing your JIRA page.
 
-### Chrome and Google Chrome ###
+### Google Chrome ###
 
 Due to Chrome's recent clamping down on userscript extensions, installation on
 Chrome is slightly more involved.
@@ -43,9 +43,10 @@ next to the filename to bring up a context menu. From this menu, choose
 "Show in Folder" and leave this window open.
 
 Next, you must open the extensions list in Chrome. You may do this by clicking the
-menu button (&equiv;) and choosing Settings. From this page you can then choose
-"Extensions" from the left-hand menu. Alternatively, you can click
-[this link][chrome-extensions] to open the page directly.
+menu button (≡) and choosing Settings. From this page you can then choose
+"Extensions" from the left-hand menu.
+
+Alternatively, you can paste the URL `chrome://extensions/` into a new tab.
 
 You must now drag and drop the file from the folder window you opened earlier into
 Chrome's extensions window. This should open the extension install dialogue. Once
@@ -96,7 +97,6 @@ This userscript uses the following libraries:
 software does to you, your family, your computer or anything else. If it
 breaks, I may be able to help, but I am under no obligation to do so.
 
-[chrome-extensions]: chrome://extensions/
 [chrome-user-scripts]: http://www.chrome.org/developers/design-documents/user-scripts
 [greasemonkey]: https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
 [jira]: http://www.atlassian.com/software/jira/
