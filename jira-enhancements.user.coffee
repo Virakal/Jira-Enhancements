@@ -4,7 +4,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     2
+// @version     3
 // ==/UserScript==
 `
 
@@ -136,7 +136,7 @@ main = ($) ->
                             decorateCard card, data
 
                         error: (xhr, status, error) ->
-                            console.debug "Jon: Error fetching data for issue #{$(card).data()}"
+                            console.debug "Error fetching data for issue #{$(card).data()}"
 
     # MAIN
 
@@ -173,15 +173,15 @@ main = ($) ->
         # span#js-pool-end is added when 'work' is reloaded
         target = $ e.target
         initIssueCards() if target.attr('id') is 'js-pool-end'
-        target.attr 'target', '_blank' if target.attr('class') is 'external-link'
-
-        return true
 
     # Ugly hack to ensure the handler gets set in Firefox
     setTimeout((-> $('#ghx-work').on 'dblclick', '.ghx-issue', (e) ->
         console.log "Clicked on ", $(e.currentTarget).find('.js-detailview')[0]
         $(e.currentTarget).find('.js-detailview')[0].click()
     ), 100)
+
+    $(document.body).on 'click', 'a.external-link', (e) ->
+        $(e.target).attr 'target', '_blank'
 
 
 # Inject the JS in as a script tag to gain access to jQuery from AJS

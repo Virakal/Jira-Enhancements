@@ -5,7 +5,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     2
+// @version     3
 // ==/UserScript==
 ;
 
@@ -138,7 +138,7 @@ main = function($) {
               return decorateCard(card, data);
             },
             error: function(xhr, status, error) {
-              return console.debug("Jon: Error fetching data for issue " + ($(card).data()));
+              return console.debug("Error fetching data for issue " + ($(card).data()));
             }
           });
         });
@@ -179,19 +179,18 @@ main = function($) {
     var target;
     target = $(e.target);
     if (target.attr('id') === 'js-pool-end') {
-      initIssueCards();
+      return initIssueCards();
     }
-    if (target.attr('class') === 'external-link') {
-      target.attr('target', '_blank');
-    }
-    return true;
   });
-  return setTimeout((function() {
+  setTimeout((function() {
     return $('#ghx-work').on('dblclick', '.ghx-issue', function(e) {
       console.log("Clicked on ", $(e.currentTarget).find('.js-detailview')[0]);
       return $(e.currentTarget).find('.js-detailview')[0].click();
     });
   }), 100);
+  return $(document.body).on('click', 'a.external-link', function(e) {
+    return $(e.target).attr('target', '_blank');
+  });
 };
 
 script = document.createElement('script');
