@@ -65,6 +65,8 @@ your JIRA page.
       zooming, etc.)
     + Double click anywhere on an issue card to open the details pane
     + Make all external links open in a new tab
++ Plan View
+    + Context menu for issue listings
 
 ## Upcoming Features ##
 
@@ -73,7 +75,7 @@ your JIRA page.
 + Work View
     + Keyboard navigation for issue cards
 + Plan View
-    + Context menu for issue listings
+    + More context menu options
     + Expandable issue listings with more information, e.g. labels
 
 ## Removed Features ##
