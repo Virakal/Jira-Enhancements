@@ -184,7 +184,6 @@ main = function($) {
   });
   setTimeout((function() {
     return $('#ghx-work').on('dblclick', '.ghx-issue', function(e) {
-      console.log("Clicked on ", $(e.currentTarget).find('.js-detailview')[0]);
       return $(e.currentTarget).find('.js-detailview')[0].click();
     });
   }), 100);

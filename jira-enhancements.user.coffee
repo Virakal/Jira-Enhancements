@@ -176,7 +176,6 @@ main = ($) ->
 
     # Ugly hack to ensure the handler gets set in Firefox
     setTimeout((-> $('#ghx-work').on 'dblclick', '.ghx-issue', (e) ->
-        console.log "Clicked on ", $(e.currentTarget).find('.js-detailview')[0]
         $(e.currentTarget).find('.js-detailview')[0].click()
     ), 100)
 
