@@ -4,7 +4,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     3
+// @version     3.1
 // ==/UserScript==
 `
 
@@ -111,7 +111,7 @@ main = ($) ->
             'status'
         ]
 
-        cards = $ '.ghx-issue'
+        cards = $ '#ghx-work .ghx-issue'
 
         cards.contextMenu 'workContextMenu'
             onContextMenu: (e) ->
@@ -142,23 +142,7 @@ main = ($) ->
 
 
     initPlanView = ->
-        cards = $ '.ghx-issue'
-
-        cards.contextMenu 'planContextMenu'
-            onContextMenu: (e) ->
-                # Select the issue before firing context menu
-                $(e.currentTarget).trigger 'click'
-
-            menuStyle:
-                'width': 'auto'
-
-            itemHoverStyle:
-                'background-color': 'rgb(217, 231, 243)'
-                'border-color': 'rgb(180, 200, 210)'
-
-            bindings: bindings['planContextMenu']
-
-    # MAIN
+        # PASS
 
     insertDependencies()
 
@@ -183,15 +167,6 @@ main = ($) ->
         'links':
             name: 'Set to Blocked...'
             callback: GH.IssueOperationShortcuts.linkSelectedIssue
-
-    buildMenu 'planContextMenu'
-        'send-to-top':
-            name: 'Send to Top'
-            callback: GH.Shortcut.sendToTop
-
-        'send-to-bottom':
-            name: 'Send to Bottom'
-            callback: GH.Shortcut.sendToBottom
 
     initIssueCards()
     initPlanView()

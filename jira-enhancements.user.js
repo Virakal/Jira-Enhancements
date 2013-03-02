@@ -5,7 +5,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     3
+// @version     3.1
 // ==/UserScript==
 ;
 
@@ -115,7 +115,7 @@ main = function($) {
   initIssueCards = function() {
     var FIELDS, card, cards, _i, _len, _results;
     FIELDS = ['attachment', 'comment', 'issuelinks', 'labels', 'status'];
-    cards = $('.ghx-issue');
+    cards = $('#ghx-work .ghx-issue');
     cards.contextMenu('workContextMenu', {
       onContextMenu: function(e) {
         return $(e.currentTarget).trigger('click');
@@ -149,23 +149,7 @@ main = function($) {
     }
     return _results;
   };
-  initPlanView = function() {
-    var cards;
-    cards = $('.ghx-issue');
-    return cards.contextMenu('planContextMenu', {
-      onContextMenu: function(e) {
-        return $(e.currentTarget).trigger('click');
-      },
-      menuStyle: {
-        'width': 'auto'
-      },
-      itemHoverStyle: {
-        'background-color': 'rgb(217, 231, 243)',
-        'border-color': 'rgb(180, 200, 210)'
-      },
-      bindings: bindings['planContextMenu']
-    });
-  };
+  initPlanView = function() {};
   insertDependencies();
   buildMenu('workContextMenu', {
     'view-story': {
@@ -189,16 +173,6 @@ main = function($) {
     'links': {
       name: 'Set to Blocked...',
       callback: GH.IssueOperationShortcuts.linkSelectedIssue
-    }
-  });
-  buildMenu('planContextMenu', {
-    'send-to-top': {
-      name: 'Send to Top',
-      callback: GH.Shortcut.sendToTop
-    },
-    'send-to-bottom': {
-      name: 'Send to Bottom',
-      callback: GH.Shortcut.sendToBottom
     }
   });
   initIssueCards();
