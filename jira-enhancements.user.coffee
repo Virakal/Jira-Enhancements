@@ -4,7 +4,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     4.0
+// @version     4.1
 // ==/UserScript==
 `
 main = ($) ->
@@ -204,15 +204,15 @@ GM_addStyle "
         width: 1em;
     }
 
-    #ghx-plan .ghx-issue .ghx-type {
+    #ghx-plan .ghx-issue-compact .ghx-type {
         display: none;
     }
 
-    #ghx-plan .ghx-issue .ghx-priority {
+    #ghx-plan .ghx-issue-compact .ghx-flags {
         display: none;
     }
 
-    #ghx-plan .ghx-issue .ghx-issue-fields {
+    #ghx-plan .ghx-issue-compact .ghx-issue-fields {
         left: -40px;
         position: relative;
     }
