@@ -2,10 +2,10 @@
 
 ## Overview ##
 
-This is a [GreaseMonkey][greasemonkey] userscript designed for Atlassian 
+This is a [GreaseMonkey][greasemonkey] userscript designed for Atlassian
 [JIRA][jira] OnDemand instances to make things more suitable for my workflow.
 
-It is also fully compatible with Google Chrome's 
+It is also fully compatible with Google Chrome's
 [user script engine][chrome-user-scripts] and was written with Chrome in mind. This
 required some pretty ugly hacks to bypass Google Chrome's extremely restrictive
 sandboxing.
@@ -56,7 +56,6 @@ your JIRA page.
 ## Features ##
 
 + Work view
-    + Context menu for issues
     + At-a-glance icons for issues with comments and/or attachments
     + Full list of labels directly on the issue card
     + Show blocked icon for issues with an unfinished blocker issue link or issues
@@ -65,8 +64,6 @@ your JIRA page.
       zooming, etc.)
     + Double click anywhere on an issue card to open the details pane
     + Make all external links open in a new tab
-+ Plan View
-    + Context menu for issue listings
 
 ## Upcoming Features ##
 
@@ -75,7 +72,6 @@ your JIRA page.
 + Work View
     + Keyboard navigation for issue cards
 + Plan View
-    + More context menu options
     + Expandable issue listings with more information, e.g. labels
 
 ## Removed Features ##
@@ -84,13 +80,6 @@ Mostly in order to save space, I have removed some features that are of no
 use to myself. Namely:
 
 + Issue type icons on user stories in work view are gone
-
-## Libraries ##
-
-This userscript uses the following libraries:
-
-+  [jQuery Context Menu][jquery-context-menu]
-   by Chris Domigan
 
 
 ## Warranty ##
