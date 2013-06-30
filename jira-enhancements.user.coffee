@@ -4,10 +4,9 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     3.1
+// @version     4.0
 // ==/UserScript==
 `
-
 main = ($) ->
     API_URL = '/rest/api/2/'
 
@@ -18,11 +17,6 @@ main = ($) ->
 
     clearImmediate = window.clearTimeout
 
-    insertDependencies = ->
-        # http://www.trendskitchens.co.nz/jquery/contextmenu/
-        `(function($){var menu,shadow,trigger,content,hash,currentTarget;var defaults={menuStyle:{listStyle:'none',padding:'1px',margin:'0px',backgroundColor:'#fff',border:'1px solid #999',width:'100px'},itemStyle:{margin:'0px',color:'#000',display:'block',cursor:'default',padding:'3px',border:'1px solid #fff',backgroundColor:'transparent'},itemHoverStyle:{border:'1px solid #0a246a',backgroundColor:'#b6bdd2'},eventPosX:'pageX',eventPosY:'pageY',shadow:true,onContextMenu:null,onShowMenu:null};$.fn.contextMenu=function(id,options){if(!menu){menu=$('<div id="jqContextMenu"></div>').hide().css({position:'absolute',zIndex:'500'}).appendTo('body').bind('click',function(e){e.stopPropagation()})}if(!shadow){shadow=$('<div></div>').css({backgroundColor:'#000',position:'absolute',opacity:0.2,zIndex:499}).appendTo('body').hide()}hash=hash||[];hash.push({id:id,menuStyle:$.extend({},defaults.menuStyle,options.menuStyle||{}),itemStyle:$.extend({},defaults.itemStyle,options.itemStyle||{}),itemHoverStyle:$.extend({},defaults.itemHoverStyle,options.itemHoverStyle||{}),bindings:options.bindings||{},shadow:options.shadow||options.shadow===false?options.shadow:defaults.shadow,onContextMenu:options.onContextMenu||defaults.onContextMenu,onShowMenu:options.onShowMenu||defaults.onShowMenu,eventPosX:options.eventPosX||defaults.eventPosX,eventPosY:options.eventPosY||defaults.eventPosY});var index=hash.length-1;$(this).bind('contextmenu',function(e){var bShowContext=(!!hash[index].onContextMenu)?hash[index].onContextMenu(e):true;if(bShowContext)display(index,this,e,options);return false});return this};function display(index,trigger,e,options){var cur=hash[index];content=$('#'+cur.id).find('ul:first').clone(true);content.css(cur.menuStyle).find('li').css(cur.itemStyle).hover(function(){$(this).css(cur.itemHoverStyle)},function(){$(this).css(cur.itemStyle)}).find('img').css({verticalAlign:'middle',paddingRight:'2px'});menu.html(content);if(!!cur.onShowMenu)menu=cur.onShowMenu(e,menu);$.each(cur.bindings,function(id,func){$('#'+id,menu).bind('click',function(e){hide();func(trigger,currentTarget)})});menu.css({'left':e[cur.eventPosX],'top':e[cur.eventPosY]}).show();if(cur.shadow)shadow.css({width:menu.width(),height:menu.height(),left:e.pageX+2,top:e.pageY+2}).show();$(document).one('click',hide)}function hide(){menu.hide();shadow.hide()}$.contextMenu={defaults:function(userDefaults){$.each(userDefaults,function(i,val){if(typeof val=='object'&&defaults[i]){$.extend(defaults[i],val)}else defaults[i]=val})}}})($)`
-        
-
     isBlocked = (link) ->
         if link.type.inward is "is blocked by"
             return (!link.outwardIssue?) and link.inwardIssue?.fields.status.name isnt "Done"
@@ -32,7 +26,7 @@ main = ($) ->
 
         if value then flag.css('display', 'inline-block') else flag.hide()
 
-    
+
     buildMenu = (id, items) ->
         bindings[id] ?= {}
 
@@ -68,7 +62,7 @@ main = ($) ->
 
         if data.fields?
             flags = $(card).find '.ghx-flags'
-            
+
             if data.fields.labels?.length
                 list = $('<div>').attr('class', 'label-list').hide()
 
@@ -100,7 +94,7 @@ main = ($) ->
                 for link in data.fields.issuelinks when isBlocked(link) and data.fields.status?.name isnt 'Done'
                     setBlocked(card)
                     break
-                
+
 
     initIssueCards = ->
         FIELDS = [
@@ -113,20 +107,6 @@ main = ($) ->
 
         cards = $ '#ghx-work .ghx-issue'
 
-        cards.contextMenu 'workContextMenu'
-            onContextMenu: (e) ->
-                # Select the issue before firing context menu
-                $(e.currentTarget).trigger 'click'
-
-            menuStyle:
-                'width': 'auto'
-
-            itemHoverStyle:
-                'background-color': 'rgb(217, 231, 243)'
-                'border-color': 'rgb(180, 200, 210)'
-
-            bindings: bindings['workContextMenu']
-        
         for card in cards
             do (card) ->
                 setImmediate ->
@@ -143,30 +123,6 @@ main = ($) ->
 
     initPlanView = ->
         # PASS
-
-    insertDependencies()
-
-    buildMenu 'workContextMenu'
-        'view-story':
-            name: 'View Story...'
-            callback: (t) ->
-                $(t).find('.js-detailview')[0].click()
-
-        'edit-issue':
-            name: 'Edit Story...'
-            callback: GH.Shortcut.editIssue
-
-        'edit-labels': 
-            name: 'Edit Labels...'
-            callback: GH.Shortcut.editIssueLabels
-
-        'assign-to-me':
-            name: 'Assign Story to Me'
-            callback: GH.Shortcut.assignIssueToMe
-
-        'links':
-            name: 'Set to Blocked...'
-            callback: GH.IssueOperationShortcuts.linkSelectedIssue
 
     initIssueCards()
     initPlanView()
