@@ -5,7 +5,7 @@
 // @description Add a few improvements to the JIRA sprint board, such as adding a context menu to issues.
 // @include     *.atlassian.net/secure/RapidBoard.jspa*
 // @grant       GM_addStyle
-// @version     4.1
+// @version     4.2
 // ==/UserScript==
 ;
 var main, script;
